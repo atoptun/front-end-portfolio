@@ -1,44 +1,43 @@
 const metaFiles = import.meta.glob('../projects/**/meta.json', { eager: true, import: 'default' });
 
-const listContainer = document.querySelector('#project-list');
+const previewImages = import.meta.glob('../projects/**/project-preview.{png,jpg,jpeg,svg,webp,avif}', {
+  eager: true,
+  import: 'default',
+});
 
-const createCardTemplate = ({ title, preview, url }) => {
-  return `
-  <li class="project-card">
-    <a class="card-link" href="${url}">
-      <div class="card-image">
-        <img src="${preview}" alt="${title}" loading="lazy" width="300" height="300">
-      </div>
-      <div class="card-content">
-        <h2 class="project-title">${title}</h2>
-      </div>
-    </a>
-  </li>
-  `;
-};
+import defaultPreview from '../img/preview-default.jpg';
+
+const listContainer = document.querySelector('#project-list');
 
 const renderCatalog = () => {
   if (!listContainer) return;
 
-  const cardList = [];
+  const html = Object.entries(metaFiles)
+    .map(([path, config]) => {
+      const projectFolder = path.replace('/meta.json', '');
 
-  Object.entries(metaFiles).forEach(([path, config]) => {
-    const projectFolder = path.replace('/meta.json', '');
-    const projectUrl = `${projectFolder}/index.html`.replace('../', './');
-    let previewUrl = './img/preview-default.jpg';
-    if (config.preview) {
-      previewUrl = new URL(`${projectFolder}/${config.preview}`, import.meta.url).href;
-    }
-    cardList.push(
-      createCardTemplate({
-        title: config.title,
-        preview: previewUrl,
-        url: projectUrl,
-      })
-    );
-  });
+      const imagePath = config.preview ? `${projectFolder}/${config.preview.replace('./', '')}` : null;
 
-  listContainer.insertAdjacentHTML('beforeend', cardList.join(''));
+      const previewUrl = imagePath && previewImages[imagePath] ? previewImages[imagePath] : defaultPreview;
+
+      const projectUrl = `${projectFolder}/`.replace('../', './');
+
+      return `
+      <li class="project-card">
+        <a class="card-link" href="${projectUrl}">
+          <div class="card-image">
+            <img src="${previewUrl}" alt="${config.title}" loading="lazy" width="300" height="300">
+          </div>
+          <div class="card-content">
+            <h2 class="project-title">${config.title}</h2>
+          </div>
+        </a>
+      </li>
+    `;
+    })
+    .join('');
+
+  listContainer.innerHTML = html;
 };
 
 renderCatalog();
