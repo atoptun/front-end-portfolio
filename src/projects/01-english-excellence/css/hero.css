@@ -40,7 +40,7 @@
     max-width: 704px;
 
     /* fallback */
-    background-image: url('/images/hero/bg-hero-tablet.jpg');
+    background-image: url('./../images/hero/bg-hero-tablet.jpg');
     background-image: -webkit-image-set(
       url(./../images/hero/webp/bg-hero-tablet.webp) 1x,
       url(./../images/hero/webp/bg-hero-tablet@2x.webp) 2x

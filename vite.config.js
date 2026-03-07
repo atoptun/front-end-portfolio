@@ -1,10 +1,17 @@
 import { defineConfig } from 'vite';
-import { glob } from 'glob';
-import { resolve } from 'path';
+import path, { resolve } from 'path';
+import { fileURLToPath } from 'url';
+import glob from 'fast-glob';
 import injectHTML from 'vite-plugin-html-inject';
 import FullReload from 'vite-plugin-full-reload';
+// CSS
 import SortCss from 'postcss-sort-media-queries';
-// import webfontDownload from 'vite-plugin-webfont-dl';
+import autoprefixer from 'autoprefixer';
+import purgecss from '@fullhuman/postcss-purgecss';
+// Images
+import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
+import imagemin from 'imagemin';
+import imageminWebp from 'imagemin-webp';
 
 export default defineConfig(({ command }) => {
   return {
@@ -20,6 +27,14 @@ export default defineConfig(({ command }) => {
           SortCss({
             sort: 'mobile-first',
           }),
+          // autoprefixer(),              // TODO: check this
+          // purgecss({                   // TODO: check this
+          //   content: ['./src/**/*.html', './src/**/*.js'],
+          //   safelist: {
+          //     standard: [/^js-/, 'is-active', 'is-open'],
+          //   },
+          //   defaultExtractor: content => content.match(/[\w-/:]+(?<!:)/g) || [],
+          // }),
         ],
       },
     },
@@ -32,10 +47,21 @@ export default defineConfig(({ command }) => {
 
     build: {
       sourcemap: true,
+      minify: false,
       rollupOptions: {
-        input: glob.sync('./src/**/*.html', {
-          ignore: './src/**/partials/**/*.html',
-        }),
+        input: Object.fromEntries(
+          glob
+            .sync(['./src/*.html', './src/projects/**/*.html'], {
+              ignore: ['./src/**/partials/**/*.html'],
+            })
+            .map(file => [
+              path.relative(
+                __dirname,
+                file.slice(0, file.length - path.extname(file).length)
+              ),
+              fileURLToPath(new URL(file, import.meta.url)),
+            ])
+        ),
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
@@ -69,6 +95,34 @@ export default defineConfig(({ command }) => {
       outDir: '../dist',
       emptyOutDir: true,
     },
-    plugins: [injectHTML(), FullReload(['./src/**/*.html'])],
+    plugins: [
+      injectHTML(),
+      FullReload(['./src/**/*.html']),
+      ViteImageOptimizer({
+        png: {
+          quality: 86,
+        },
+        jpeg: {
+          quality: 86,
+        },
+        jpg: {
+          quality: 86,
+        },
+        webp: {
+          quality: 80,
+        },
+        avif: {
+          quality: 70,
+        },
+        exclude: /\.svg$/i,
+      }),
+      // {
+      //   ...imagemin(['./src/img/**/*.{jpg,png,jpeg}'], {
+      //     destination: './src/img/webp/',
+      //     plugins: [imageminWebp({ quality: 86 })],
+      //   }),
+      //   apply: 'build',
+      // },
+    ],
   };
 });
