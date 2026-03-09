@@ -50,9 +50,14 @@ export default defineConfig(({ command }) => {
       minify: false,
       rollupOptions: {
         input: Object.fromEntries(
-          glob
+          glob 
+            // for watch while developing one project
+            // .sync(['./src/projects/05-cat-crm/*.html', './src/projects/05-cat-crm/**/*.html'], {
+            //   ignore: ['**/_*.html'],
+            // })
+            // for building all projects
             .sync(['./src/*.html', './src/projects/**/*.html'], {
-              ignore: ['./src/**/partials/**/*.html'],
+              ignore: ['./src/**/_*.html'],
             })
             .map(file => [
               path.relative(
@@ -98,24 +103,27 @@ export default defineConfig(({ command }) => {
     plugins: [
       injectHTML(),
       FullReload(['./src/**/*.html']),
-      ViteImageOptimizer({
-        png: {
-          quality: 86,
-        },
-        jpeg: {
-          quality: 86,
-        },
-        jpg: {
-          quality: 86,
-        },
-        webp: {
-          quality: 80,
-        },
-        avif: {
-          quality: 70,
-        },
-        exclude: /\.svg$/i,
-      }),
+      // don't enable for watch, uncomment before build
+      // ViteImageOptimizer({
+      //   png: {
+      //     quality: 86,
+      //   },
+      //   jpeg: {
+      //     quality: 86,
+      //   },
+      //   jpg: {
+      //     quality: 86,
+      //   },
+      //   webp: {
+      //     quality: 80,
+      //   },
+      //   avif: {
+      //     quality: 70,
+      //   },
+      //   exclude: /\.svg$/i,
+      // }),
+
+      // example, don't use
       // {
       //   ...imagemin(['./src/img/**/*.{jpg,png,jpeg}'], {
       //     destination: './src/img/webp/',
